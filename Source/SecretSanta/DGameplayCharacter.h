@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "DGameplayCharacter.generated.h"
 
+class USpringArmComponent;
+class UCameraComponent;
+
 UCLASS()
 class SECRETSANTA_API ADGameplayCharacter : public ACharacter
 {
@@ -16,6 +19,13 @@ public:
 	ADGameplayCharacter();
 
 protected:
+
+	UPROPERTY(EditDefaultsOnly)
+	USpringArmComponent* SpringArmComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	UCameraComponent* CameraComp;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 

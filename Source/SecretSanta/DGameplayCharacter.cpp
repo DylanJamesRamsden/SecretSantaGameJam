@@ -3,12 +3,28 @@
 
 #include "DGameplayCharacter.h"
 
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+
 // Sets default values
 ADGameplayCharacter::ADGameplayCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
+	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
+
+	SpringArmComp->SetupAttachment(RootComponent);
+	CameraComp->SetupAttachment(SpringArmComp);
+
+	SpringArmComp->bEnableCameraLag = true;
+	SpringArmComp->CameraLagSpeed = .5f;
+	SpringArmComp->bDoCollisionTest = false;
+	SpringArmComp->TargetArmLength = 1000.0f;
+
+	SpringArmComp->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
+	SpringArmComp->SetAbsolute(false, true);
 }
 
 // Called when the game starts or when spawned
