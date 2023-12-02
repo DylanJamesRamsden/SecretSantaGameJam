@@ -11,7 +11,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Kismet/KismetStringLibrary.h"
 
 // Sets default values
 ADGameplayCharacter::ADGameplayCharacter()
@@ -43,7 +42,17 @@ void ADGameplayCharacter::BeginPlay()
 
 void ADGameplayCharacter::MoveHorizontal(const FInputActionValue&  Value)
 {
+	// https://forums.unrealengine.com/t/frame-rate-independence/127007/5
 	GetMovementComponent()->AddInputVector(FVector::RightVector * Value.Get<float>());
+
+	// Triggers our turn logic
+	if ((bIsFacingRight && Value.Get<float>() < 0) || (!bIsFacingRight && Value.Get<float>() > 0))
+	{
+		bIsFacingRight = !bIsFacingRight;
+		bIsTurning = true;
+
+		bIsFacingRight ? TargetTurnRotation = FRotator(0.0f, 0.0f, 0.0f) : TargetTurnRotation = FRotator(0.0f, 180.0f, 0.0f);
+	}
 }
 
 void ADGameplayCharacter::ToggleSprint(const FInputActionValue&  Value)
@@ -51,7 +60,7 @@ void ADGameplayCharacter::ToggleSprint(const FInputActionValue&  Value)
 	bIsSprinting = !bIsSprinting;
 
 	float MovementSpeed = 0.0f;
-	bIsSprinting ? MovementSpeed = 600.0f : MovementSpeed = 300.0f;
+	bIsSprinting ? MovementSpeed = 500.0f : MovementSpeed = 200.0f;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 }
 
@@ -60,6 +69,16 @@ void ADGameplayCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bIsTurning)
+	{
+		// @TODO Look into this, I swear this number shouldn't be this large???
+		GetMesh()->SetRelativeRotation(FMath::RInterpConstantTo(GetMesh()->GetRelativeRotation(),
+			TargetTurnRotation, DeltaTime, 500.0f));
+
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, GetMesh()->GetRelativeRotation().ToString());
+
+		if (GetMesh()->GetRelativeRotation() == TargetTurnRotation) bIsTurning = false;
+	}
 }
 
 // Called to bind functionality to input

@@ -33,6 +33,11 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsSprinting;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFacingRight = true;
+	bool bIsTurning;
+	FRotator TargetTurnRotation;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
