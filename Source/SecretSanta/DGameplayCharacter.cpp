@@ -3,8 +3,15 @@
 
 #include "DGameplayCharacter.h"
 
+#include "DPlayerCharacterInputConfig.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputActionValue.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetStringLibrary.h"
 
 // Sets default values
 ADGameplayCharacter::ADGameplayCharacter()
@@ -19,7 +26,7 @@ ADGameplayCharacter::ADGameplayCharacter()
 	CameraComp->SetupAttachment(SpringArmComp);
 
 	SpringArmComp->bEnableCameraLag = true;
-	SpringArmComp->CameraLagSpeed = .5f;
+	SpringArmComp->CameraLagSpeed = .95f;
 	SpringArmComp->bDoCollisionTest = false;
 	SpringArmComp->TargetArmLength = 1000.0f;
 
@@ -34,6 +41,20 @@ void ADGameplayCharacter::BeginPlay()
 	
 }
 
+void ADGameplayCharacter::MoveHorizontal(const FInputActionValue&  Value)
+{
+	GetMovementComponent()->AddInputVector(FVector::RightVector * Value.Get<float>());
+}
+
+void ADGameplayCharacter::ToggleSprint(const FInputActionValue&  Value)
+{
+	bIsSprinting = !bIsSprinting;
+
+	float MovementSpeed = 0.0f;
+	bIsSprinting ? MovementSpeed = 600.0f : MovementSpeed = 300.0f;
+	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+}
+
 // Called every frame
 void ADGameplayCharacter::Tick(float DeltaTime)
 {
@@ -46,5 +67,21 @@ void ADGameplayCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	check(EnhancedInputComponent);
+
+	// By the time this function is called, the pawn already has a controller and local player
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	check(PC);
+	UEnhancedInputLocalPlayerSubsystem* EnhancedInputLocalPlayerSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	check(EnhancedInputLocalPlayerSubsystem)
+	
+	EnhancedInputLocalPlayerSubsystem->ClearAllMappings();
+	EnhancedInputLocalPlayerSubsystem->AddMappingContext(PlayerCharacterInputConfig->PlayerCharacterIMC, 0);
+
+	// @TODO Look into the different triggers for enhanced input again
+	EnhancedInputComponent->BindAction(PlayerCharacterInputConfig->MoveHorizontalIA, ETriggerEvent::Triggered, this, &ADGameplayCharacter::MoveHorizontal);
+	EnhancedInputComponent->BindAction(PlayerCharacterInputConfig->JumpIA, ETriggerEvent::Triggered, this, &ADGameplayCharacter::Jump);
+	EnhancedInputComponent->BindAction(PlayerCharacterInputConfig->SprintIA, ETriggerEvent::Triggered, this, &ADGameplayCharacter::ToggleSprint);
 }
 

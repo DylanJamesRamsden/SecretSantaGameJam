@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "DGameplayCharacter.generated.h"
 
+class UDPlayerCharacterInputConfig;
+struct FInputActionValue;
 class USpringArmComponent;
 class UCameraComponent;
 
@@ -25,9 +27,21 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	UCameraComponent* CameraComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	UDPlayerCharacterInputConfig* PlayerCharacterInputConfig;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsSprinting;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void MoveHorizontal(const FInputActionValue&  Value);
+
+	UFUNCTION()
+	void ToggleSprint(const FInputActionValue&  Value);
 
 public:	
 	// Called every frame
