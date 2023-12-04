@@ -60,7 +60,7 @@ void ADGameplayCharacter::ToggleSprint(const FInputActionValue&  Value)
 	bIsSprinting = !bIsSprinting;
 
 	float MovementSpeed = 0.0f;
-	bIsSprinting ? MovementSpeed = 500.0f : MovementSpeed = 200.0f;
+	bIsSprinting ? MovementSpeed = 180.0f : MovementSpeed = 80.0f;
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 }
 
